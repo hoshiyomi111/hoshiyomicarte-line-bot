@@ -3,14 +3,16 @@ const line = require('@line/bot-sdk');
 const { getImprintLine } = require('./imprints');
 
 const config = {
-  channelSecret: process.env.LINE_CHANNEL_SECRET,
+  channelSconst m = text.match(/(d{4})D+(d{1,2})D+(d{1,2})/);ecret: process.env.LINE_CHANNEL_SECRET,
   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
 };
-
+const nums = text.match(/[0-9]+/g);
+  if (!nums || nums.length < 3) return null;
+  if (nums[0].length === 4) return { year: +nums[0], month: +nums[1], day: +nums[2] };
+  if (nums[2].length === 4) return { year: +nums[2], month: +nums[0], day: +nums[1] };
 const client = new line.Client(config);
 const app = express();
 const sessions = {};
-
 const URBAN_KEYWORDS = ['東京','大阪','名古屋','横浜','神戸','京都','福岡','札幌','仙台','広島','北九州','千葉','埼玉','川崎','相模原','新潟','浜松','岡山','静岡','熊本','堺','姫路','船橋','松山','東大阪','鹿児島','金沢','23区','市川','尼崎','西宮','高松','那覇','豊田','長野'];
 function detectRegionType(birthplace) {
   if (!birthplace) return null;
