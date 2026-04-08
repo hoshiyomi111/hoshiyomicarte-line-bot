@@ -3,17 +3,16 @@ const line = require('@line/bot-sdk');
 const { getImprintLine } = require('./imprints');
 
 const config = {
-  channelSconst m = text.match(/(d{4})D+(d{1,2})D+(d{1,2})/);ecret: process.env.LINE_CHANNEL_SECRET,
+  channelSecret: process.env.LINE_CHANNEL_SECRET,
   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
 };
-const nums = text.match(/[0-9]+/g);
-  if (!nums || nums.length < 3) return null;
-  if (nums[0].length === 4) return { year: +nums[0], month: +nums[1], day: +nums[2] };
-  if (nums[2].length === 4) return { year: +nums[2], month: +nums[0], day: +nums[1] };
+
 const client = new line.Client(config);
 const app = express();
 const sessions = {};
+
 const URBAN_KEYWORDS = ['東京','大阪','名古屋','横浜','神戸','京都','福岡','札幌','仙台','広島','北九州','千葉','埼玉','川崎','相模原','新潟','浜松','岡山','静岡','熊本','堺','姫路','船橋','松山','東大阪','鹿児島','金沢','23区','市川','尼崎','西宮','高松','那覇','豊田','長野'];
+
 function detectRegionType(birthplace) {
   if (!birthplace) return null;
   for (const k of URBAN_KEYWORDS) { if (birthplace.includes(k)) return 'urban'; }
@@ -35,19 +34,26 @@ function getZodiac(month, day) {
   return 'pisces';
 }
 
-const ZODIAC_NAMES = {aries:'牡羊座',taurus:'牡牛座',gemini:'双子座',cancer:'蟹座',leo:'獅子座',virgo:'乙女座',libra:'天秤座',scorpio:'蠍座',sagittarius:'射手座',capricorn:'山羊座',aquarius:'水瓶座',pisces:'魚座'};
+const ZODIAC_NAMES = {
+  aries:'牡羊座', taurus:'牡牛座', gemini:'双子座', cancer:'蟹座',
+  leo:'獅子座', virgo:'乙女座', libra:'天秤座', scorpio:'蠍座',
+  sagittarius:'射手座', capricorn:'山羊座', aquarius:'水瓶座', pisces:'魚座'
+};
 
-// シンプルで確実なパース：数字以外を区切り文字として扱う
+// 数字だけ取り出してパース（/[0-9]+/ はバックスラッシュ不要で確実）
 function parseBirthdate(text) {
-  const m = text.match(/(d{4})D+(d{1,2})D+(d{1,2})/);
-  if (m) return { year: +m[1], month: +m[2], day: +m[3] };
+  var nums = text.match(/[0-9]+/g);
+  if (!nums || nums.length < 3) return null;
+  if (nums[0].length === 4) return { year: +nums[0], month: +nums[1], day: +nums[2] };
+  if (nums[2].length === 4) return { year: +nums[2], month: +nums[0], day: +nums[1] };
   return null;
 }
 
 function buildZodiacText(name, zodiac, birthYear, gender, regionType) {
   const imprintLine = getImprintLine(birthYear, gender, regionType);
   const ib = imprintLine ? '\n\n' + imprintLine : '';
-  const texts = {
+
+  const T = {
     aries: name+'さんへ、星読みカルテからの診断です。\n\n【牡羊座の人間関係】\n「誰よりも早く動けるのに、誰よりも孤立しやすい人。」\n\nあなたは行動力と決断の速さで、自然とリーダーになっていく傾向があります。困っている人を見たら放っておけない、そのエネルギーで周りを引っ張る存在です。\n\nでも、その裏にこんな構造があります。あなたが「行動」を通じて愛情を表現するとき、相手は「一緒にいるだけでいい」と思っていることがある。あなたのペースについてこれない人を、無意識に「弱い」と感じてしまうことがある。これは意地悪ではなく、「愛＝動くこと」として刷り込まれた構造的な傾向です。\n\n人間関係でつまずくのは「もっと速く動けばよかった」ではなく、「もっと待てばよかった」という場面が多いかもしれません。'+ib+'\n\nあなたに聞いてみたいことがあります。「一緒にいるだけでいい」と思えた相手は、これまでいましたか？\n\n▷ 詳細解析では、星座×刻印×月星座の交差点から、あなただけの人間関係パターンを読み解きます。',
     taurus: name+'さんへ、星読みカルテからの診断です。\n\n【牡牛座の人間関係】\n「変わらないことで守っているはずが、変われないことで苦しんでいる人。」\n\nあなたは信頼と安心を何より大切にします。一度心を許した相手には深く、長く、誠実につながる。その安定感が、あなたの最大の強みです。\n\nでも、その裏にこんな構造があります。「変わらない」ことが自分を守る手段になっているとき、関係が変化しようとするサインを「裏切り」として受け取ってしまうことがある。これは頑固なのではなく、「変化＝喪失」として深く刷り込まれた構造的な傾向です。\n\n人間関係でつまずくのは「もっとしっかり守れればよかった」ではなく、「変化を一緒に楽しめればよかった」という場面かもしれません。'+ib+'\n\nあなたに聞いてみたいことがあります。「この関係は変わってほしくない」と思った瞬間、あなたは何を守ろうとしていましたか？\n\n▷ 詳細解析では、星座×刻印×月星座の交差点から、あなただけの人間関係パターンを読み解きます。',
     gemini: name+'さんへ、星読みカルテからの診断です。\n\n【双子座の人間関係】\n「誰とでも話せる人が、実は誰にも本当のことを話していない。」\n\nあなたは話題の引き出しが多く、どんな人とも自然に会話を作れる。その場の空気を読んで、相手に合わせた自分を出すことができる。これはれっきとした才能です。\n\nでも、その裏にこんな構造があります。「相手に合わせた自分」を出し続けるうちに、「本当の自分」がどこにあるかわからなくなることがある。たくさんの人と話しているのに、深くわかり合えている人が一人もいない気がする。これはコミュニケーション不足ではなく、「適応すること＝愛されること」という構造的な傾向です。\n\n人間関係でつまずくのは「もっとうまく話せればよかった」ではなく、「本当のことを言えればよかった」という場面かもしれません。'+ib+'\n\nあなたに聞いてみたいことがあります。最後に「本当のこと」を誰かに話したのは、いつでしたか？\n\n▷ 詳細解析では、星座×刻印×月星座の交差点から、あなただけの人間関係パターンを読み解きます。',
@@ -61,55 +67,75 @@ function buildZodiacText(name, zodiac, birthYear, gender, regionType) {
     aquarius: name+'さんへ、星読みカルテからの診断です。\n\n【水瓶座の人間関係】\n「みんなのことを考えられるのに、目の前の一人とうまくいかない人。」\n\nあなたは大きな視点で物事を見る力があります。社会や構造を俯瞰して、本質的な問いを立てられる。その独自の視点で、あなたに共鳴する人は深く引きつけられます。\n\nでも、その裏にこんな構造があります。「みんな」のことは考えられても、目の前の一人の感情に寄り添うことが苦手なことがある。感情的になっている相手を、つい「論理」で解決しようとしてしまう。これは冷たさではなく、「感情より概念」として世界を処理してきた構造的な傾向です。\n\n人間関係でつまずくのは「もっと論理的に説明すればよかった」ではなく、「ただそばにいればよかった」という場面かもしれません。'+ib+'\n\nあなたに聞いてみたいことがあります。理屈抜きで「この人といたい」と思った瞬間は、どんなときでしたか？\n\n▷ 詳細解析では、星座×刻印×月星座の交差点から、あなただけの人間関係パターンを読み解きます。',
     pisces: name+'さんへ、星読みカルテからの診断です。\n\n【魚座の人間関係】\n「誰よりも共感できるのに、共感しすぎて自分を見失う人。」\n\nあなたは相手の気持ちの中に入り込む力があります。その場の感情を丸ごと受け取り、自分のことのように感じられる。その感受性で、あなたとつながった人は「本当にわかってもらえた」と感じます。\n\nでも、その裏にこんな構造があります。相手の感情と自分の感情の境界線が薄いために、どこまでが自分でどこからが相手かわからなくなることがある。誰かのために動いているつもりが、実は自分の感情を相手に投影していることがある。これは優しさの問題ではなく、「境界線の薄さ」という構造的な傾向です。\n\n人間関係でつまずくのは「もっと共感すればよかった」ではなく、「自分の感情を先に確認すればよかった」という場面かもしれません。'+ib+'\n\nあなたに聞いてみたいことがあります。今のあなたの気持ちは、あなた自身のものですか？それとも誰かから受け取ったものですか？\n\n▷ 詳細解析では、星座×刻印×月星座の交差点から、あなただけの人間関係パターンを読み解きます。',
   };
-  return texts[zodiac] || texts.cancer;
+  return T[zodiac] || T.cancer;
 }
 
 const WELCOME = 'こんにちは。星読みカルテです。\n\n占星術を「予言」としてではなく、自分を知るための地図として使います。\n当たるかより、腑に落ちるか。\n\n無料診断では、あなたの人間関係のパターンを言語化します。\n\nまず、お名前を教えてください。';
 
 function getNextStep(session, text) {
-  switch(session.step) {
+  switch (session.step) {
     case 0:
-      session.name = text.trim(); session.step = 1;
+      session.name = text.trim();
+      session.step = 1;
       return session.name + 'さん、はじめまして。\n\n生年月日を教えてください。\n例：2000/9/26 または 2000年9月26日';
     case 1: {
       const bd = parseBirthdate(text);
       if (!bd) return '生年月日を数字で入力してください。\n例：2000/9/26 または 2000年9月26日';
-      session.birthdate = bd; session.step = 2;
-      return { type:'text', text:'性別を教えてください（任意）。\n診断の精度を上げるために使いますが、スキップしても大丈夫です。', quickReply:{ items:[
-        {type:'action',action:{type:'message',label:'女性',text:'女性'}},
-        {type:'action',action:{type:'message',label:'男性',text:'男性'}},
-        {type:'action',action:{type:'message',label:'その他・答えたくない',text:'スキップ'}},
-      ]}};
+      session.birthdate = bd;
+      session.step = 2;
+      return {
+        type: 'text',
+        text: '性別を教えてください（任意）。\n診断の精度を上げるために使いますが、スキップしても大丈夫です。',
+        quickReply: { items: [
+          { type: 'action', action: { type: 'message', label: '女性', text: '女性' } },
+          { type: 'action', action: { type: 'message', label: '男性', text: '男性' } },
+          { type: 'action', action: { type: 'message', label: 'その他・答えたくない', text: 'スキップ' } },
+        ]},
+      };
     }
     case 2:
-      session.gender = text==='女性'?'female':text==='男性'?'male':null; session.step = 3;
-      return { type:'text', text:'出生時間帯を教えてください（任意）。', quickReply:{ items:[
-        {type:'action',action:{type:'message',label:'朝（6〜12時）',text:'朝'}},
-        {type:'action',action:{type:'message',label:'昼（12〜18時）',text:'昼'}},
-        {type:'action',action:{type:'message',label:'夜（18〜24時）',text:'夜'}},
-        {type:'action',action:{type:'message',label:'深夜（0〜6時）',text:'深夜'}},
-        {type:'action',action:{type:'message',label:'わからない',text:'わからない'}},
-      ]}};
+      session.gender = text === '女性' ? 'female' : text === '男性' ? 'male' : null;
+      session.step = 3;
+      return {
+        type: 'text',
+        text: '出生時間帯を教えてください（任意）。',
+        quickReply: { items: [
+          { type: 'action', action: { type: 'message', label: '朝（6〜12時）', text: '朝' } },
+          { type: 'action', action: { type: 'message', label: '昼（12〜18時）', text: '昼' } },
+          { type: 'action', action: { type: 'message', label: '夜（18〜24時）', text: '夜' } },
+          { type: 'action', action: { type: 'message', label: '深夜（0〜6時）', text: '深夜' } },
+          { type: 'action', action: { type: 'message', label: 'わからない', text: 'わからない' } },
+        ]},
+      };
     case 3:
-      session.timeOfDay = text.trim(); session.step = 4;
+      session.timeOfDay = text.trim();
+      session.step = 4;
       return '出生地（都道府県や市区町村）を教えてください。\n例：東京都、大阪市、石川県など';
     case 4: {
-      session.birthplace = text.trim(); session.step = 5;
-      const {year,month,day} = session.birthdate;
-      const zn = ZODIAC_NAMES[getZodiac(month,day)];
-      return 'ありがとうございます。確認します。\n\nお名前：'+session.name+'\n生年月日：'+year+'年'+month+'月'+day+'日\n時間帯：'+session.timeOfDay+'\n出生地：'+session.birthplace+'\n星座：'+zn+'\n\nこの内容で診断を送ります。よろしいですか？（はい／いいえ）';
+      session.birthplace = text.trim();
+      session.step = 5;
+      const { year, month, day } = session.birthdate;
+      const zn = ZODIAC_NAMES[getZodiac(month, day)];
+      return 'ありがとうございます。確認します。\n\nお名前：' + session.name +
+        '\n生年月日：' + year + '年' + month + '月' + day + '日' +
+        '\n時間帯：' + session.timeOfDay +
+        '\n出生地：' + session.birthplace +
+        '\n星座：' + zn +
+        '\n\nこの内容で診断を送ります。よろしいですか？（はい／いいえ）';
     }
     case 5:
-      if (/はい|yes|ok/i.test(text)) { session.step=6; return '__SEND__'; }
-      session.step=0; return 'はじめからやり直します。\n\nお名前を教えてください。';
-    default: return '「診断」と送るとはじめからやり直せます。';
+      if (/はい|yes|ok/i.test(text)) { session.step = 6; return '__SEND__'; }
+      session.step = 0;
+      return 'はじめからやり直します。\n\nお名前を教えてください。';
+    default:
+      return '「診断」と送るとはじめからやり直せます。';
   }
 }
 
 app.post('/webhook', line.middleware(config), async (req, res) => {
   res.status(200).end();
-  for (const event of (req.body.events||[])) {
-    if (event.type!=='message'||event.message.type!=='text') continue;
+  for (const event of (req.body.events || [])) {
+    if (event.type !== 'message' || event.message.type !== 'text') continue;
     await handleMessage(event).catch(console.error);
   }
 });
@@ -117,33 +143,49 @@ app.post('/webhook', line.middleware(config), async (req, res) => {
 async function handleMessage(event) {
   const userId = event.source.userId;
   const text = event.message.text.trim();
+
   if (/^(リセット|reset)$/i.test(text)) {
     delete sessions[userId];
-    await client.replyMessage(event.replyToken,{type:'text',text:WELCOME}); return;
+    await client.replyMessage(event.replyToken, { type: 'text', text: WELCOME });
+    return;
   }
-  if (!sessions[userId]||text==='診断') {
-    sessions[userId]={step:0};
-    await client.replyMessage(event.replyToken,{type:'text',text:WELCOME}); return;
+
+  if (!sessions[userId] || text === '診断') {
+    sessions[userId] = { step: 0 };
+    await client.replyMessage(event.replyToken, { type: 'text', text: WELCOME });
+    return;
   }
+
   const session = sessions[userId];
   const response = getNextStep(session, text);
-  if (response==='__SEND__') {
-    const {name,birthdate,birthplace,gender} = session;
-    const {year,month,day} = birthdate;
-    const zodiacKey = getZodiac(month,day);
+
+  if (response === '__SEND__') {
+    const { name, birthdate, birthplace, gender } = session;
+    const { year, month, day } = birthdate;
+    const zodiacKey = getZodiac(month, day);
     const regionType = detectRegionType(birthplace);
     const resultText = buildZodiacText(name, zodiacKey, year, gender, regionType);
-    await client.replyMessage(event.replyToken,{type:'text',text:resultText});
+
+    await client.replyMessage(event.replyToken, { type: 'text', text: resultText });
+
     const adminId = process.env.ADMIN_LINE_USER_ID;
     if (adminId) {
-      const gl = gender==='female'?'女性':gender==='male'?'男性':'未回答';
-      await client.pushMessage(adminId,{type:'text',text:'【新規診断】\n名前：'+name+'\n生年月日：'+year+'/'+month+'/'+day+'\n性別：'+gl+'\n時間帯：'+session.timeOfDay+'\n出生地：'+birthplace+'（'+(regionType==='urban'?'都市':'地方')+'）\n星座：'+ZODIAC_NAMES[zodiacKey]});
+      const gl = gender === 'female' ? '女性' : gender === 'male' ? '男性' : '未回答';
+      await client.pushMessage(adminId, {
+        type: 'text',
+        text: '【新規診断】\n名前：' + name + '\n生年月日：' + year + '/' + month + '/' + day +
+          '\n性別：' + gl + '\n時間帯：' + session.timeOfDay +
+          '\n出生地：' + birthplace + '（' + (regionType === 'urban' ? '都市' : '地方') + '）' +
+          '\n星座：' + ZODIAC_NAMES[zodiacKey],
+      });
     }
-    delete sessions[userId]; return;
+    delete sessions[userId];
+    return;
   }
-  const msg = typeof response==='string'?{type:'text',text:response}:response;
+
+  const msg = typeof response === 'string' ? { type: 'text', text: response } : response;
   await client.replyMessage(event.replyToken, msg);
 }
 
-const PORT = process.env.PORT||3000;
-app.listen(PORT,()=>console.log('星読みカルテ LINE Bot 起動 port:'+PORT));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log('星読みカルテ LINE Bot 起動 port:' + PORT));
