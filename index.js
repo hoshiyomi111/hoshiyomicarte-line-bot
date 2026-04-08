@@ -320,7 +320,7 @@ const ZODIAC_READINGS = {
 // 星座判定
 // ─────────────────────────────────────────────
 function getZodiac(birthdate) {
-  const match = birthdate.match(/(\d{1,2})[\/\-月](\d{1,2})/);
+  const match = birthdate.match(/(?:\d{2,4}[\/\-年])?(\d{1,2})[\/\-月](\d{1,2})/);
   if (!match) return null;
   const month = parseInt(match[1]);
   const day = parseInt(match[2]);
