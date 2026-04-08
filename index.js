@@ -35,12 +35,10 @@ function getZodiac(month, day) {
 
 const ZODIAC_NAMES = {aries:'牡羊座',taurus:'牡牛座',gemini:'双子座',cancer:'蟹座',leo:'獅子座',virgo:'乙女座',libra:'天秤座',scorpio:'蠍座',sagittarius:'射手座',capricorn:'山羊座',aquarius:'水瓶座',pisces:'魚座'};
 
+// シンプルで確実なパース：数字以外を区切り文字として扱う
 function parseBirthdate(text) {
-  const patterns = [/(d{4})[/-年](d{1,2})[/-月](d{1,2})/,/(d{1,2})[/-](d{1,2})[/-](d{4})/];
-  for (const pat of patterns) {
-    const m = text.match(pat);
-    if (m) { const [,a,b,c]=m; if(a.length===4) return{year:+a,month:+b,day:+c}; return{year:+c,month:+a,day:+b}; }
-  }
+  const m = text.match(/(d{4})D+(d{1,2})D+(d{1,2})/);
+  if (m) return { year: +m[1], month: +m[2], day: +m[3] };
   return null;
 }
 
@@ -70,10 +68,10 @@ function getNextStep(session, text) {
   switch(session.step) {
     case 0:
       session.name = text.trim(); session.step = 1;
-      return session.name + 'さん、はじめまして。\n\n生年月日を教えてください。\n例：1995/3/11 または 1995年3月11日';
+      return session.name + 'さん、はじめまして。\n\n生年月日を教えてください。\n例：2000/9/26 または 2000年9月26日';
     case 1: {
       const bd = parseBirthdate(text);
-      if (!bd) return '生年月日の形式が読み取れませんでした。\n例：1995/3/11 または 1995年3月11日';
+      if (!bd) return '生年月日を数字で入力してください。\n例：2000/9/26 または 2000年9月26日';
       session.birthdate = bd; session.step = 2;
       return { type:'text', text:'性別を教えてください（任意）。\n診断の精度を上げるために使いますが、スキップしても大丈夫です。', quickReply:{ items:[
         {type:'action',action:{type:'message',label:'女性',text:'女性'}},
