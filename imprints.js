@@ -50,8 +50,9 @@ function calcAgeScore(birthYear, event) {
 }
 
 function calcGenderScore(userGender, event) {
-  if (!userGender || event.gender === 'all') return 1;
-  return event.gender === userGender ? 0 : 2;
+  if (event.gender === 'all') return 0;
+  if (!userGender) return 5;
+  return event.gender === userGender ? 0 : 10;
 }
 
 function calcRegionScore(userRegion, event) {
@@ -64,7 +65,7 @@ function getImprints(birthYear, gender, regionType, topN) {
   const scored = IMPRINTS.map(function(event) {
     const ageScore = calcAgeScore(birthYear, event);
     if (ageScore === 999) return null;
-    const total = ageScore + calcGenderScore(gender, event) * 0.5 + calcRegionScore(regionType, event) * 0.5 + (3 - event.weight) * 0.1;
+    const total = ageScore + calcGenderScore(gender, event) + calcRegionScore(regionType, event) * 0.5 + (3 - event.weight) * 0.1;
     return { event: event, score: total };
   }).filter(Boolean);
   scored.sort(function(a, b) { return a.score - b.score; });
