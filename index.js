@@ -50,7 +50,7 @@ function parseBirthdate(text) {
 }
 
 function buildZodiacText(name, zodiac, birthYear, gender, regionType) {
-  const imprintLine = getImprintLine(birthYear, gender, regionType);
+  const imprintLine = getImprintLine(birthYear, gender, regionType, zodiac);
   const ib = imprintLine ? '\n\n' + imprintLine : '';
   const T = {
     aries: name+'さんへ、星読みカルテからの診断です。\n\n【牡羊座の人間関係】\n「誰よりも早く動けるのに、誰よりも孤立しやすい人。」\n\nあなたは行動力と決断の速さで、自然とリーダーになっていく傾向があります。困っている人を見たら放っておけない、そのエネルギーで周りを引っ張る存在です。\n\nでも、その裏にこんな構造があります。あなたが「行動」を通じて愛情を表現するとき、相手は「一緒にいるだけでいい」と思っていることがある。あなたのペースについてこれない人を、無意識に「弱い」と感じてしまうことがある。これは意地悪ではなく、「愛＝動くこと」として刷り込まれた構造的な傾向です。\n\n人間関係でつまずくのは「もっと速く動けばよかった」ではなく、「もっと待てばよかった」という場面が多いかもしれません。'+ib+'\n\nあなたに聞いてみたいことがあります。「一緒にいるだけでいい」と思えた相手は、これまでいましたか？\n\n▷ 詳細解析では、星座×刻印×月星座の交差点から、あなただけの人間関係パターンを読み解きます。',
